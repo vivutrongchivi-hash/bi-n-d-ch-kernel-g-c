@@ -249,13 +249,13 @@
  * if FTS_GET_MODULE_NUM >= 2, fw corrsponding with FTS_VENDOR_ID2
  * define your own fw_file, the sample one is invalid
  */
-#define FTS_UPGRADE_FW2_FILE                     "include/firmware/fw_sample.i"
+#define FTS_UPGRADE_FW2_FILE                     "include/firmware/fw_helitai_v0e.i"
 
 /*
  * if FTS_GET_MODULE_NUM >= 3, fw corrsponding with FTS_VENDOR_ID3
  * define your own fw_file, the sample one is invalid
  */
-#define FTS_UPGRADE_FW3_FILE                     "include/firmware/fw_sample.i"
+#define FTS_UPGRADE_FW3_FILE                     "include/firmware/fw_helitai_v0e.i"
 
 /*********************************************************/
 
