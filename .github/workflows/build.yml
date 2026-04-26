@@ -10,6 +10,8 @@ jobs:
     steps:
     - name: Checkout Source
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Install Build Essentials
       run: |
@@ -53,13 +55,20 @@ jobs:
         export HOSTCFLAGS="-fcommon"
         export LLVM=1
         export LLVM_IAS=1
+        
+        # CHẶN DẤU "+" TẠI ĐÂY
+        export LOCALVERSION=""
+        touch .scmversion
 
         mkdir -p out
 
+        # Sử dụng file defconfig bạn đã sửa thủ công
         make O=out dandelion_defconfig
         make O=out olddefconfig
 
+        # Build kèm tham số chặn Localversion một lần nữa cho chắc chắn
         make -j$(nproc) O=out \
+        LOCALVERSION= \
         HOSTCFLAGS="-fcommon" \
         KCFLAGS="-w"
 
@@ -68,6 +77,8 @@ jobs:
       if: success()
       uses: actions/upload-artifact@v4
       with:
-        name: Image-Redmi9A-KSU
+        name: Image-Redmi9A-KSU-NoPlus
         path: |
           out/arch/arm64/boot/Image.gz
+          out/arch/arm64/boot/Image
+          
