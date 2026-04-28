@@ -1,4 +1,4 @@
-name: Build Kernel DTB Only
+name: Build Kernel DTB (Dandelion)
 
 on:
   workflow_dispatch:
@@ -15,38 +15,43 @@ jobs:
       run: |
         sudo apt update
         sudo apt install -y bc bison flex libssl-dev make \
-        libc6-dev libncurses5-dev clang lld llvm
+        libc6-dev libncurses5-dev python3 cpio unzip zip
 
-    - name: Setup Clang
+    - name: Clone Proton Clang
       run: |
-        git clone --depth=1 https://github.com/llvm/llvm-project clang
+        git clone --depth=1 https://github.com/kdrag0n/proton-clang clang
 
-    - name: Export Build Vars
+    - name: Set Environment
       run: |
         echo "ARCH=arm64" >> $GITHUB_ENV
         echo "SUBARCH=arm64" >> $GITHUB_ENV
-        echo "CLANG_PATH=$GITHUB_WORKSPACE/clang" >> $GITHUB_ENV
+        echo "PATH=$GITHUB_WORKSPACE/clang/bin:$PATH" >> $GITHUB_ENV
+
+    - name: Create Output Folder
+      run: mkdir -p out
 
     - name: Load Defconfig
       run: |
         make O=out ARCH=arm64 dandelion_defconfig
+
+    # 🔥 Fix lỗi compiler (stack protector)
+    - name: Fix Stack Protector Error
+      run: |
+        scripts/config --file out/.config -d CC_STACKPROTECTOR_STRONG
+        scripts/config --file out/.config -e CC_STACKPROTECTOR_NONE
+        make O=out ARCH=arm64 olddefconfig
 
     - name: Build Image.gz-dtb
       run: |
         make -j$(nproc) O=out \
         ARCH=arm64 \
         CC=clang \
-        LD=ld.lld \
-        AR=llvm-ar \
-        NM=llvm-nm \
-        OBJCOPY=llvm-objcopy \
-        OBJDUMP=llvm-objdump \
-        STRIP=llvm-strip \
+        CLANG_TRIPLE=aarch64-linux-gnu- \
         CROSS_COMPILE=aarch64-linux-gnu- \
         CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
         Image.gz-dtb
 
-    - name: Upload DTB Image
+    - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
         name: kernel_dtb
